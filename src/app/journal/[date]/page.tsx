@@ -147,7 +147,6 @@ const JournalEditor = ({
 
 // Wrapper to fetch entry if exists
 const EnhancedJournalEditor = withObservables(['dateStr'], ({ dateStr }: { dateStr: string }) => ({
-    entry: database.collections.get<JournalEntry>('journal_entries')
     entries: database.collections.get<JournalEntry>('journal_entries')
         .query(Q.where('date', dateStr)) // Should return 0 or 1
         .observe()
