@@ -3,9 +3,10 @@
 import { useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, Plus, Trash2, Edit, Volume2 } from "lucide-react"
+import { ArrowLeft, Plus, Trash2, Edit, Volume2, Book, Eye } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { withObservables } from '@nozbe/watermelondb/react'
+import ReactMarkdown from 'react-markdown'
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -23,10 +24,11 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import { database } from "@/lib/db"
 import Deck from "@/model/Deck"
-import CardModel from "@/model/Card" // Renamed to avoid partial conflict with UI Card
+import CardModel from "@/model/Card"
 
 // Inner Component: Displays the list of cards
 const CardList = ({ cards, deck }: { cards: CardModel[], deck: Deck }) => {
+    const [selectedCard, setSelectedCard] = useState<CardModel | null>(null)
 
     const handleDeleteCard = async (card: CardModel) => {
         if (confirm("Delete this card?")) {
@@ -38,8 +40,6 @@ const CardList = ({ cards, deck }: { cards: CardModel[], deck: Deck }) => {
 
     const speakWord = (text: string) => {
         const utterance = new SpeechSynthesisUtterance(text)
-        // Use deck language if available, else default to English (or auto-detect)
-        // Mapping simple codes to BCP 47 tags roughly
         const langMap: Record<string, string> = {
             'en': 'en-US',
             'jp': 'ja-JP',
@@ -70,18 +70,21 @@ const CardList = ({ cards, deck }: { cards: CardModel[], deck: Deck }) => {
                     >
                         <Card className="group">
                             <CardContent className="flex items-center gap-4 p-4">
-                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-lg">
+                                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-lg ${card.type === 'grammar' ? 'bg-purple-100 text-purple-600' : 'bg-primary/10 text-primary'
+                                    }`}>
                                     {card.type === "vocab" && "📚"}
                                     {card.type === "phrase" && "💬"}
                                     {card.type === "grammar" && "📝"}
                                 </div>
+
                                 <div className="flex-1 min-w-0">
                                     <p className="font-medium truncate">{card.front}</p>
                                     <p className="text-sm text-muted-foreground truncate">
-                                        {card.back}
+                                        {card.type === 'grammar' ? "Grammar Pattern" : card.back}
                                     </p>
                                 </div>
-                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+
+                                <div className="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                                     <Button
                                         variant="ghost"
                                         size="icon"
@@ -89,9 +92,21 @@ const CardList = ({ cards, deck }: { cards: CardModel[], deck: Deck }) => {
                                     >
                                         <Volume2 className="h-4 w-4" />
                                     </Button>
-                                    <Button variant="ghost" size="icon">
-                                        <Edit className="h-4 w-4" />
-                                    </Button>
+
+                                    {card.type === 'grammar' ? (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => setSelectedCard(card)}
+                                        >
+                                            <Eye className="h-4 w-4" />
+                                        </Button>
+                                    ) : (
+                                        <Button variant="ghost" size="icon">
+                                            <Edit className="h-4 w-4" />
+                                        </Button>
+                                    )}
+
                                     <Button
                                         variant="ghost"
                                         size="icon"
@@ -113,6 +128,26 @@ const CardList = ({ cards, deck }: { cards: CardModel[], deck: Deck }) => {
                     </p>
                 </div>
             )}
+
+            {/* Grammar View Dialog */}
+            <Dialog open={!!selectedCard} onOpenChange={(open) => !open && setSelectedCard(null)}>
+                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2 text-xl">
+                            <Book className="h-5 w-5 text-purple-500" />
+                            {selectedCard?.front}
+                        </DialogTitle>
+                        <DialogDescription>
+                            Grammar Pattern & Rules
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4 prose dark:prose-invert max-w-none">
+                        <ReactMarkdown>
+                            {selectedCard?.back || ""}
+                        </ReactMarkdown>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }
@@ -182,25 +217,35 @@ const DeckDetail = ({ deck }: { deck: Deck }) => {
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="front" className="text-sm font-medium">
-                                    Front (Word/Phrase)
+                                    {newCard.type === 'grammar' ? "Grammar Pattern" : "Front (Word/Phrase)"}
                                 </label>
                                 <Input
                                     id="front"
-                                    placeholder="e.g., Negotiate"
+                                    placeholder={newCard.type === 'grammar' ? "e.g. Verb-te + iru" : "e.g., Negotiate"}
                                     value={newCard.front}
                                     onChange={(e) => setNewCard({ ...newCard, front: e.target.value })}
                                 />
                             </div>
                             <div className="space-y-2">
                                 <label htmlFor="back" className="text-sm font-medium">
-                                    Back (Meaning/Translation)
+                                    {newCard.type === 'grammar' ? "Explanation & Examples" : "Back (Meaning/Translation)"}
                                 </label>
-                                <Input
-                                    id="back"
-                                    placeholder="e.g., To discuss something to reach an agreement"
-                                    value={newCard.back}
-                                    onChange={(e) => setNewCard({ ...newCard, back: e.target.value })}
-                                />
+                                {newCard.type === 'grammar' ? (
+                                    <textarea
+                                        id="back"
+                                        className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                        placeholder="Explain the grammar rule and provide examples..."
+                                        value={newCard.back}
+                                        onChange={(e) => setNewCard({ ...newCard, back: e.target.value })}
+                                    />
+                                ) : (
+                                    <Input
+                                        id="back"
+                                        placeholder="e.g., To discuss something to reach an agreement"
+                                        value={newCard.back}
+                                        onChange={(e) => setNewCard({ ...newCard, back: e.target.value })}
+                                    />
+                                )}
                             </div>
                         </div>
                         <DialogFooter>
@@ -236,13 +281,7 @@ const EnhancedDeckDetail = withObservables(['deckId'], ({ deckId }: { deckId: st
 }))(DeckDetail)
 
 export default function DeckDetailPage({ params }: { params: { deckId: string } }) {
-    // In Next.js 15, params can be async, but standard usage was sync. 
-    // We'll wrap it safely. If it's a promise, we'd need await, but for client components usually we grab unwrapped params or use hook.
-    // The previous code used useParams() hook which is safe for Client Components.
-    // Let's stick to valid Client Component pattern:
     const { deckId } = useParams()
-
     if (!deckId) return <div>Loading...</div>
-
     return <EnhancedDeckDetail deckId={deckId as string} />
 }
