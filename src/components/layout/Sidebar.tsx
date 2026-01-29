@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BookOpen, Dumbbell, LayoutDashboard, Settings, GraduationCap, ChevronDown, Check } from "lucide-react"
+import { BookOpen, Dumbbell, LayoutDashboard, Settings, GraduationCap, ChevronDown, Check, PenTool } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/mode-toggle"
@@ -17,7 +17,7 @@ import {
 const navItems = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
     { name: "Library", href: "/library", icon: BookOpen },
-    { name: "Study", href: "/study", icon: GraduationCap },
+    { name: "Journal", href: "/journal", icon: PenTool },
     { name: "Gym", href: "/gym", icon: Dumbbell },
     { name: "Settings", href: "/settings", icon: Settings },
 ]

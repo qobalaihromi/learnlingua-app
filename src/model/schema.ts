@@ -52,5 +52,16 @@ export const schema = appSchema({
                 { name: 'created_at', type: 'number' },
             ]
         }),
+        tableSchema({
+            name: 'journal_entries',
+            columns: [
+                { name: 'date', type: 'string', isIndexed: true }, // YYYY-MM-DD
+                { name: 'content', type: 'string' },
+                { name: 'correction', type: 'string', isOptional: true },
+                { name: 'mood', type: 'string', isOptional: true },
+                { name: 'created_at', type: 'number' },
+                { name: 'updated_at', type: 'number' },
+            ]
+        }),
     ]
 })

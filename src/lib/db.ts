@@ -5,6 +5,7 @@ import Deck from '@/model/Deck'
 import Card from '@/model/Card'
 import Script from '@/model/Script'
 import ScriptLine from '@/model/ScriptLine'
+import JournalEntry from '@/model/JournalEntry'
 
 // Define the adapter
 const adapter = new LokiJSAdapter({
@@ -23,5 +24,6 @@ export const database = new Database({
         Card,
         Script,
         ScriptLine,
+        JournalEntry,
     ],
 })
