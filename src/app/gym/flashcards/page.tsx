@@ -1,32 +1,24 @@
 "use client"
 
 import { useState, useCallback, useEffect } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
+import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
-import { RotateCcw, ThumbsUp, ThumbsDown, Volume2, ArrowRight, Trophy, Flame } from "lucide-react"
+import { RotateCcw, ThumbsUp, ThumbsDown, Volume2, ArrowRight, Trophy, Flame, ArrowLeft } from "lucide-react"
 import confetti from "canvas-confetti"
+import { withObservables } from '@nozbe/watermelondb/react'
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 
-interface FlashCard {
-    id: string
-    front: string
-    back: string
-    type: "vocab" | "phrase" | "grammar"
-}
+import { database } from "@/lib/db"
+import CardModel from "@/model/Card"
+import Deck from "@/model/Deck"
 
-// Mock flashcards data
-const mockCards: FlashCard[] = [
-    { id: "1", front: "Negotiate", back: "To discuss something to reach an agreement", type: "vocab" },
-    { id: "2", front: "Let's circle back", back: "Let's discuss this again later", type: "phrase" },
-    { id: "3", front: "Leverage", back: "To use something to maximum advantage", type: "vocab" },
-    { id: "4", front: "Synergy", back: "Combined effort being greater than parts", type: "vocab" },
-    { id: "5", front: "Touch base", back: "To make contact or communicate briefly", type: "phrase" },
-]
-
-export default function FlashcardsPage() {
-    const [cards] = useState<FlashCard[]>(mockCards)
+// Inner Component: Actual Flashcard Logic
+const FlashcardSession = ({ cards, deck }: { cards: CardModel[], deck: Deck }) => {
+    const router = useRouter()
     const [currentIndex, setCurrentIndex] = useState(0)
     const [isFlipped, setIsFlipped] = useState(false)
     const [correctCount, setCorrectCount] = useState(0)
@@ -35,14 +27,37 @@ export default function FlashcardsPage() {
     const [streak, setStreak] = useState(0)
 
     const currentCard = cards[currentIndex]
+    // Guard against empty deck
+    if (!currentCard && !isComplete) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
+                <p className="text-muted-foreground">This deck has no cards yet.</p>
+                <Link href={`/library/${deck.id}`}>
+                    <Button>Add Cards</Button>
+                </Link>
+            </div>
+        )
+    }
+
     const progress = ((currentIndex) / cards.length) * 100
 
     const speakWord = useCallback((text: string) => {
         const utterance = new SpeechSynthesisUtterance(text)
-        utterance.lang = "en-US"
+        // Simple mapping
+        const langMap: Record<string, string> = {
+            'en': 'en-US',
+            'jp': 'ja-JP',
+            'de': 'de-DE',
+            'fr': 'fr-FR',
+            'es': 'es-ES',
+            'zh': 'zh-CN',
+            'ko': 'ko-KR',
+            'id': 'id-ID'
+        }
+        utterance.lang = langMap[deck.language.toLowerCase()] || 'en-US'
         utterance.rate = 0.9
         speechSynthesis.speak(utterance)
-    }, [])
+    }, [deck.language])
 
     const handleFlip = () => {
         setIsFlipped(!isFlipped)
@@ -51,7 +66,12 @@ export default function FlashcardsPage() {
         }
     }
 
-    const handleResponse = (correct: boolean) => {
+    const handleResponse = async (correct: boolean) => {
+        // Update DB (async fire-and-forget for UI responsiveness, or await if critical)
+        database.write(async () => {
+            await currentCard.updateReview(correct ? 5 : 1) // 5 = Easy/Good, 1 = Again
+        })
+
         if (correct) {
             setCorrectCount(correctCount + 1)
             setStreak(streak + 1)
@@ -134,10 +154,16 @@ export default function FlashcardsPage() {
                     </div>
                 </motion.div>
 
-                <Button size="lg" onClick={resetSession} className="gap-2">
-                    <RotateCcw className="h-4 w-4" />
-                    Practice Again
-                </Button>
+                <div className="flex gap-4">
+                    <Button variant="outline" size="lg" onClick={() => router.back()} className="gap-2">
+                        <ArrowLeft className="h-4 w-4" />
+                        Back to Deck
+                    </Button>
+                    <Button size="lg" onClick={resetSession} className="gap-2">
+                        <RotateCcw className="h-4 w-4" />
+                        Practice Again
+                    </Button>
+                </div>
             </div>
         )
     }
@@ -183,8 +209,8 @@ export default function FlashcardsPage() {
                             className="absolute inset-0"
                         >
                             <Card className={`flex h-full items-center justify-center p-8 ${isFlipped
-                                    ? "bg-gradient-to-br from-primary/5 to-primary/10"
-                                    : "bg-gradient-to-br from-secondary/50 to-secondary"
+                                ? "bg-gradient-to-br from-primary/5 to-primary/10"
+                                : "bg-gradient-to-br from-secondary/50 to-secondary"
                                 }`}>
                                 <CardContent className="text-center">
                                     <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">
@@ -195,8 +221,8 @@ export default function FlashcardsPage() {
                                     </p>
                                     <div className="mt-4 flex justify-center gap-2">
                                         <span className={`rounded-full px-2 py-1 text-xs ${currentCard.type === "vocab" ? "bg-blue-500/10 text-blue-500" :
-                                                currentCard.type === "phrase" ? "bg-green-500/10 text-green-500" :
-                                                    "bg-purple-500/10 text-purple-500"
+                                            currentCard.type === "phrase" ? "bg-green-500/10 text-green-500" :
+                                                "bg-purple-500/10 text-purple-500"
                                             }`}>
                                             {currentCard.type}
                                         </span>
@@ -212,7 +238,10 @@ export default function FlashcardsPage() {
             <div className="flex justify-center gap-4">
                 {!isFlipped ? (
                     <>
-                        <Button variant="outline" size="lg" onClick={() => speakWord(currentCard.front)}>
+                        <Button variant="outline" size="lg" onClick={(e) => {
+                            e.stopPropagation();
+                            speakWord(currentCard.front);
+                        }}>
                             <Volume2 className="h-5 w-5" />
                         </Button>
                         <Button size="lg" onClick={handleFlip} className="gap-2 px-8">
@@ -256,4 +285,37 @@ export default function FlashcardsPage() {
             </div>
         </div>
     )
+}
+
+
+const EnhancedFlashcardSession = withObservables(['deckId'], ({ deckId }: { deckId: string }) => {
+    const deck = database.collections.get<Deck>('decks').findAndObserve(deckId)
+    // We observe `deck.cards`
+    // Note: WatermelonDB doesn't easily let you just "pass through" a prop to a query in the same component definition without some HOC nesting or trickery.
+    // Standard pattern: Get deck, pass to child. Child observes cards.
+    // OR we can do a complex observable here.
+    return {
+        deck: deck,
+    }
+})(({ deck }: { deck: Deck }) => <EnhancedCardList deck={deck} />)
+
+// We need two layers because `deck` is async.
+const EnhancedCardList = withObservables(['deck'], ({ deck }: { deck: Deck }) => ({
+    cards: deck.cards.observe(),
+}))(FlashcardSession)
+
+
+export default function FlashcardsPage() {
+    const searchParams = useSearchParams()
+    const deckId = searchParams.get("deckId")
+
+    if (!deckId) {
+        return (
+            <div className="flex items-center justify-center min-h-[50vh]">
+                <p className="text-muted-foreground">No deck selected.</p>
+            </div>
+        )
+    }
+
+    return <EnhancedFlashcardSession deckId={deckId} />
 }
