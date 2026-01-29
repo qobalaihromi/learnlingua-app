@@ -81,8 +81,8 @@ const ScriptViewer = ({ script, lines }: { script: Script, lines: ScriptLine[] }
                         </div>
 
                         <div className={`group relative max-w-[80%] rounded-2xl px-4 py-3 ${line.speaker === 'A'
-                                ? 'bg-primary/10 rounded-tl-none'
-                                : 'bg-secondary/50 rounded-tr-none'
+                            ? 'bg-primary/10 rounded-tl-none'
+                            : 'bg-secondary/50 rounded-tr-none'
                             }`}>
                             <p className="text-base font-medium leading-relaxed">
                                 {line.text}
@@ -173,6 +173,20 @@ const ScriptDetail = ({ script }: { script: Script }) => {
                 <Button variant="ghost" size="icon">
                     <MoreVertical className="h-5 w-5" />
                 </Button>
+            </div>
+
+            {/* Action Banner */}
+            <div className="bg-primary/5 p-4 rounded-lg mb-4 flex items-center justify-between">
+                <div>
+                    <h3 className="font-semibold text-sm">Practice this Script</h3>
+                    <p className="text-xs text-muted-foreground">Interactive roleplay with AI partner</p>
+                </div>
+                <Link href={`/gym/roleplay/${script.id}`}>
+                    <Button size="sm" className="gap-2">
+                        <Play className="h-4 w-4" />
+                        Start Roleplay
+                    </Button>
+                </Link>
             </div>
 
             {/* Scrollable Content */}
