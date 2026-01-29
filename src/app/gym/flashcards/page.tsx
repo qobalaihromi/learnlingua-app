@@ -66,13 +66,13 @@ const FlashcardSession = ({ cards, deck }: { cards: CardModel[], deck: Deck }) =
         }
     }
 
-    const handleResponse = async (correct: boolean) => {
-        // Update DB (async fire-and-forget for UI responsiveness, or await if critical)
+    const handleResponse = async (quality: number) => {
+        // Update DB
         database.write(async () => {
-            await currentCard.updateReview(correct ? 5 : 1) // 5 = Easy/Good, 1 = Again
+            await currentCard.updateReview(quality)
         })
 
-        if (correct) {
+        if (quality >= 3) {
             setCorrectCount(correctCount + 1)
             setStreak(streak + 1)
 
@@ -250,25 +250,39 @@ const FlashcardSession = ({ cards, deck }: { cards: CardModel[], deck: Deck }) =
                         </Button>
                     </>
                 ) : (
-                    <>
+                    <div className="grid grid-cols-4 gap-2 w-full max-w-md">
                         <Button
                             variant="outline"
-                            size="lg"
-                            onClick={() => handleResponse(false)}
-                            className="gap-2 border-red-500/50 text-red-500 hover:bg-red-500/10"
+                            onClick={() => handleResponse(1)}
+                            className="flex flex-col h-16 border-red-500/50 text-red-500 hover:bg-red-500/10"
                         >
-                            <ThumbsDown className="h-5 w-5" />
-                            Again
+                            <span className="font-bold">Again</span>
+                            <span className="text-xs opacity-70">1 min</span>
                         </Button>
                         <Button
-                            size="lg"
-                            onClick={() => handleResponse(true)}
-                            className="gap-2 bg-green-500 hover:bg-green-600"
+                            variant="outline"
+                            onClick={() => handleResponse(3)}
+                            className="flex flex-col h-16 border-orange-500/50 text-orange-500 hover:bg-orange-500/10"
                         >
-                            <ThumbsUp className="h-5 w-5" />
-                            Got It!
+                            <span className="font-bold">Hard</span>
+                            <span className="text-xs opacity-70">2 days</span>
                         </Button>
-                    </>
+                        <Button
+                            variant="outline"
+                            onClick={() => handleResponse(4)}
+                            className="flex flex-col h-16 border-blue-500/50 text-blue-500 hover:bg-blue-500/10"
+                        >
+                            <span className="font-bold">Good</span>
+                            <span className="text-xs opacity-70">4 days</span>
+                        </Button>
+                        <Button
+                            onClick={() => handleResponse(5)}
+                            className="flex flex-col h-16 bg-green-500 hover:bg-green-600 text-white"
+                        >
+                            <span className="font-bold">Easy</span>
+                            <span className="text-xs opacity-70">7 days</span>
+                        </Button>
+                    </div>
                 )}
             </div>
 

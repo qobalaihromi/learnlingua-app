@@ -21,6 +21,7 @@ export const schema = appSchema({
                 { name: 'next_review', type: 'number', isOptional: true },
                 { name: 'interval', type: 'number', isOptional: true },
                 { name: 'ease_factor', type: 'number', isOptional: true },
+                { name: 'repetitions', type: 'number', isOptional: true },
                 { name: 'created_at', type: 'number' },
             ]
         }),
