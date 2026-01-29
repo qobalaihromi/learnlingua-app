@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Plus, BookOpen, Trash2, Edit, MoreVertical, Globe } from "lucide-react"
+import { Plus, BookOpen, Trash2, Edit, MoreVertical, Globe, MessageSquare } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { withObservables } from '@nozbe/watermelondb/react'
 import { Q } from '@nozbe/watermelondb'
@@ -206,6 +206,12 @@ export default function LibraryPage() {
                     </p>
                 </div>
 
+                <Link href="/library/scripts">
+                    <Button variant="outline" className="gap-2">
+                        <MessageSquare className="h-4 w-4" />
+                        Scripts
+                    </Button>
+                </Link>
                 <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
                     <DialogTrigger asChild>
                         <Button className="gap-2">

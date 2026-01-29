@@ -3,6 +3,8 @@ import LokiJSAdapter from '@nozbe/watermelondb/adapters/lokijs'
 import { schema } from '@/model/schema'
 import Deck from '@/model/Deck'
 import Card from '@/model/Card'
+import Script from '@/model/Script'
+import ScriptLine from '@/model/ScriptLine'
 
 // Define the adapter
 const adapter = new LokiJSAdapter({
@@ -19,5 +21,7 @@ export const database = new Database({
     modelClasses: [
         Deck,
         Card,
+        Script,
+        ScriptLine,
     ],
 })

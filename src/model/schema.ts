@@ -33,5 +33,24 @@ export const schema = appSchema({
                 { name: 'speaking_score', type: 'number', isOptional: true },
             ]
         }),
+        tableSchema({
+            name: 'scripts',
+            columns: [
+                { name: 'title', type: 'string' },
+                { name: 'language', type: 'string' }, // 'en' or 'jp'
+                { name: 'created_at', type: 'number' },
+            ]
+        }),
+        tableSchema({
+            name: 'script_lines',
+            columns: [
+                { name: 'script_id', type: 'string', isIndexed: true },
+                { name: 'speaker', type: 'string' }, // 'A' or 'B'
+                { name: 'text', type: 'string' },
+                { name: 'translation', type: 'string' },
+                { name: 'order', type: 'number' },
+                { name: 'created_at', type: 'number' },
+            ]
+        }),
     ]
 })
