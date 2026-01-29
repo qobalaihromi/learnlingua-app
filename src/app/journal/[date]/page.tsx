@@ -148,10 +148,12 @@ const JournalEditor = ({
 // Wrapper to fetch entry if exists
 const EnhancedJournalEditor = withObservables(['dateStr'], ({ dateStr }: { dateStr: string }) => ({
     entry: database.collections.get<JournalEntry>('journal_entries')
+    entries: database.collections.get<JournalEntry>('journal_entries')
         .query(Q.where('date', dateStr)) // Should return 0 or 1
         .observe()
-        .map(entries => entries[0]), // Take first (should be unique by date logic)
-}))(JournalEditor)
+}))(({ dateStr, entries }: { dateStr: string, entries: JournalEntry[] }) => {
+    return <JournalEditor dateStr={dateStr} entry={entries[0]} />
+})
 
 export default function JournalEditorPage({ params }: { params: { date: string } }) {
     // Validate date format slightly?

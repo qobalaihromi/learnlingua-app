@@ -101,5 +101,5 @@ Agar Anda paham "Jeroan" aplikasi ini:
 1.  **Phase 1:** Setup Project & UI Dasar (Dual Layout).
 2.  **Phase 2:** Database Lokal & Management Deck (Input).
 3.  **Phase 3:** Integrasi YouTube & Article Reader (Completed: Flashcards, Grammar, Scripts).
-4.  **Phase 4:** Fitur Latihan (Speaking Roleplay, Journaling, SRS).
-5.  **Phase 5:** Polishing (Animasi & Confetti).
+4.  **Phase 4:** Fitur Latihan (Completed: Roleplay, Journaling, SRS).
+5.  **Phase 5:** Polishing (Completed: Dashboard, Animations).
