@@ -3,17 +3,13 @@ import LokiJSAdapter from '@nozbe/watermelondb/adapters/lokijs'
 import { schema } from '@/model/schema'
 import Deck from '@/model/Deck'
 import Card from '@/model/Card'
-import Script from '@/model/Script'
-import ScriptLine from '@/model/ScriptLine'
-import JournalEntry from '@/model/JournalEntry'
 
 // Define the adapter
 const adapter = new LokiJSAdapter({
     schema,
-    // (Optional) onIndexedDBFetchStart: () => {}, // only for iOS Safari
-    useWebWorker: false, // Recommended to turn off for initial setup simplicity
+    useWebWorker: false,
     useIncrementalIndexedDB: true,
-    // dbName: 'linguaspacedb', // optional db name
+    dbName: 'flashlinguadb',
 })
 
 // Database instance
@@ -22,8 +18,6 @@ export const database = new Database({
     modelClasses: [
         Deck,
         Card,
-        Script,
-        ScriptLine,
-        JournalEntry,
     ],
 })
+

@@ -124,3 +124,45 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Flashcard flip animation utilities */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+/* Card flip preserve 3d */
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+/* Shake animation for wrong answers */
+@keyframes shake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-4px);
+  }
+
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}

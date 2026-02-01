@@ -12,15 +12,28 @@ export default class Card extends Model {
     @text('back') back!: string
     @text('type') type!: string // 'vocab' | 'phrase' | 'grammar'
 
-    @field('deck_id') deckId!: string
-    @relation('decks', 'deck_id') deck!: any
+    // NEW: Rich card fields
+    @text('example') example?: string                    // Example sentence
+    @text('example_translation') exampleTranslation?: string // Translation of example
+    @text('image_url') imageUrl?: string                 // Image URL for visual learning
+    @text('audio_url') audioUrl?: string                 // Custom audio file URL
+    @text('tags') tags?: string                          // Comma-separated tags
 
+    @field('deck_id') deckId!: string
+    @relation('decks', 'deck_id') deck!: Deck
+
+    // SRS fields
     @field('next_review') nextReview?: number
     @field('interval') interval?: number
     @field('ease_factor') easeFactor?: number
     @field('repetitions') repetitions?: number
 
     @date('created_at') createdAt!: Date
+
+    // Helper to get tags as array
+    get tagsArray(): string[] {
+        return this.tags ? this.tags.split(',').map(t => t.trim()).filter(Boolean) : []
+    }
 
     @writer async updateReview(rating: number) {
         // SuperMemo-2 Algorithm
@@ -58,6 +71,24 @@ export default class Card extends Model {
             card.interval = interval
             card.easeFactor = easeFactor
             card.repetitions = repetitions
+        })
+    }
+
+    @writer async updateContent(data: {
+        front?: string
+        back?: string
+        example?: string
+        exampleTranslation?: string
+        imageUrl?: string
+        tags?: string
+    }) {
+        await this.update(card => {
+            if (data.front !== undefined) card.front = data.front
+            if (data.back !== undefined) card.back = data.back
+            if (data.example !== undefined) card.example = data.example
+            if (data.exampleTranslation !== undefined) card.exampleTranslation = data.exampleTranslation
+            if (data.imageUrl !== undefined) card.imageUrl = data.imageUrl
+            if (data.tags !== undefined) card.tags = data.tags
         })
     }
 }

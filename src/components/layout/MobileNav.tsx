@@ -2,14 +2,12 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BookOpen, Dumbbell, LayoutDashboard, Settings, GraduationCap } from "lucide-react"
+import { BookOpen, LayoutDashboard, Settings, Trophy, Plus } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const navItems = [
-    { name: "Home", href: "/", icon: LayoutDashboard },
-    { name: "Library", href: "/library", icon: BookOpen },
-    { name: "Study", href: "/study", icon: GraduationCap },
-    { name: "Gym", href: "/gym", icon: Dumbbell },
+    { name: "Decks", href: "/", icon: LayoutDashboard },
+    { name: "Progress", href: "/progress", icon: Trophy },
     { name: "Settings", href: "/settings", icon: Settings },
 ]
 
@@ -17,10 +15,11 @@ export function MobileNav() {
     const pathname = usePathname()
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 border-t bg-background md:hidden">
+        <div className="fixed bottom-0 left-0 right-0 border-t bg-background md:hidden z-50">
             <nav className="flex h-16 items-center justify-around px-2">
                 {navItems.map((item) => {
-                    const isActive = pathname === item.href
+                    const isActive = pathname === item.href ||
+                        (item.href !== "/" && pathname.startsWith(item.href))
                     const Icon = item.icon
                     return (
                         <Link
@@ -40,3 +39,4 @@ export function MobileNav() {
         </div>
     )
 }
+
